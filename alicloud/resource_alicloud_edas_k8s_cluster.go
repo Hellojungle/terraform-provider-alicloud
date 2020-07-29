@@ -94,7 +94,7 @@ func resourceAlicloudEdasK8sClusterCreate(d *schema.ResourceData, meta interface
 	req := edas.CreateGetClusterRequest()
 	req.ClusterId = response.Data
 	wait := incrementalWait(1*time.Second, 2*time.Second)
-	err = resource.Retry(10*time.Minute, func() *resource.RetryError {
+	err = resource.Retry(30*time.Minute, func() *resource.RetryError {
 		raw, err := edasService.client.WithEdasClient(func(edasClient *edas.Client) (interface{}, error) {
 			return edasClient.GetCluster(req)
 		})
@@ -175,7 +175,7 @@ func resourceAlicloudEdasK8sClusterDelete(d *schema.ResourceData, meta interface
 	request.ClusterId = clusterId
 
 	wait := incrementalWait(1*time.Second, 2*time.Second)
-	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(10*time.Minute, func() *resource.RetryError {
 		raw, err := edasService.client.WithEdasClient(func(edasClient *edas.Client) (interface{}, error) {
 			return edasClient.DeleteCluster(request)
 		})
@@ -202,7 +202,7 @@ func resourceAlicloudEdasK8sClusterDelete(d *schema.ResourceData, meta interface
 	reqGet := edas.CreateGetClusterRequest()
 	reqGet.RegionId = regionId
 	reqGet.ClusterId = clusterId
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+	err = resource.Retry(10*time.Minute, func() *resource.RetryError {
 		raw, err := edasService.client.WithEdasClient(func(edasClient *edas.Client) (interface{}, error) {
 			return edasClient.GetCluster(reqGet)
 		})
