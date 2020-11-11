@@ -151,7 +151,7 @@ func TestAccAlicloudEdasK8sApplication_basic(t *testing.T) {
 			{
 				Config: testAccConfig(map[string]interface{}{
 					"application_name": "${var.name}",
-					"cluster_id":       "${alicloud_edas_k8s_cluster.default.id}",
+					"cluster_id":       "d7380986-46f9-4809-9940-91a169e9c775",
 					"package_type":     "Image",
 					"image_url":        image,
 					"replicas":         "2",
@@ -174,11 +174,109 @@ func TestAccAlicloudEdasK8sApplication_basic(t *testing.T) {
 				Config: testAccConfig(map[string]interface{}{
 					"replicas":  "3",
 					"image_url": updateImg,
+					"command": "/bin/sh",
+					"command_args": []string {"-c","sleep 1000"},
+					"envs": map[string]string {"a":"b"},
+					"limit_m_cpu": "500",
+					"limit_mem": "1000",
+					"requests_m_cpu": "100",
+					"requests_mem": "100",
+					"internet_slb_id": "${alicloud_slb.default.id}",
+					"internet_slb_protocol": "TCP",
+					"internet_slb_port": "8080",
+					"internet_target_port": "18082",
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheck(map[string]string{
 						"image_url": updateImg,
 						"replicas":  "3",
+						"command": "/bin/sh",
+						"command_args": CHECKSET,
+						"limit_m_cpu":	CHECKSET,
+						"limit_mem":	CHECKSET,
+						"requests_m_cpu":	CHECKSET,
+						"requests_mem": CHECKSET,
+						"internet_slb_id": CHECKSET,
+						"internet_slb_protocol": CHECKSET,
+						"internet_slb_port": CHECKSET,
+						"internet_target_port":	CHECKSET,
+					}),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAlicloudEdasK8sApplicationJar_basic(t *testing.T) {
+	var v *edas.Applcation
+	resourceId := "alicloud_edas_k8s_application.default"
+	ra := resourceAttrInit(resourceId, edasK8sApplicationBasicMap)
+	serviceFunc := func() interface{} {
+		return &EdasService{testAccProvider.Meta().(*connectivity.AliyunClient)}
+	}
+	rc := resourceCheckInit(resourceId, &v, serviceFunc)
+	rac := resourceAttrCheckInit(rc, ra)
+
+	rand := acctest.RandIntRange(1000, 9999)
+	testAccCheck := rac.resourceAttrMapUpdateSet()
+	name := fmt.Sprintf("tf-testacc-edask8sappb%v", rand)
+	testAccConfig := resourceTestAccConfigFunc(resourceId, name, resourceEdasK8sApplicationConfigDependence)
+	region := os.Getenv("ALICLOUD_REGION")
+	packageUrl := fmt.Sprintf("http://edas-bj.oss-%s.aliyuncs.com/prod/demo/SPRING_CLOUD_PROVIDER.jar", region)
+	updateUrl := fmt.Sprintf("http://edas-bj.oss-%s.aliyuncs.com/prod/demo/SPRING_CLOUD_CONSUMER.jar", region)
+	readiness := "{\"failureThreshold\": 3,\"initialDelaySeconds\": 5,\"successThreshold\": 1,\"timeoutSeconds\": 1,\"tcpSocket\":{\"host\":\"\", \"port\":18082}}"
+	liveness := "{\"failureThreshold\": 3,\"initialDelaySeconds\": 5,\"successThreshold\": 1,\"timeoutSeconds\": 1,\"tcpSocket\":{\"host\":\"\", \"port\":18082}}"
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheckWithRegions(t, true, connectivity.EdasSupportedRegions)
+			testAccPreCheck(t)
+			testAccPreCheckWithNoDefaultVpc(t)
+		},
+
+		IDRefreshName: resourceId,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckEdasK8sApplicationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfig(map[string]interface{}{
+					"application_name": "${var.name}",
+					"cluster_id":       "${alicloud_edas_k8s_cluster.default.id}",
+					"package_type":     "FatJar",
+					"package_url":      packageUrl,
+					"jdk":              "Open JDK 8",
+					"replicas":         "1",
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheck(map[string]string{
+						"package_type": "FatJar",
+						"package_url":  packageUrl,
+						"replicas":     "1",
+						"jdk":          "Open JDK 8",
+					}),
+				),
+			},
+
+			{
+				ResourceName:      resourceId,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+
+			{
+				Config: testAccConfig(map[string]interface{}{
+					"replicas":    "2",
+					"package_url": updateUrl,
+					"readiness":   readiness,
+					"liveness":    liveness,
+					"jdk":         "Open JDK 7",
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheck(map[string]string{
+						"image_url": updateUrl,
+						"replicas":  "2",
+						"readiness": readiness,
+						"liveness":  liveness,
+						"jdk":       "Open JDK 7",
 					}),
 				),
 			},
@@ -248,10 +346,11 @@ func TestAccAlicloudEdasK8sApplication_multi(t *testing.T) {
 }
 
 var edasK8sApplicationBasicMap = map[string]string{
-	"application_name": CHECKSET,
-	"cluster_id":       CHECKSET,
-	"replicas":         CHECKSET,
-	"package_type":     CHECKSET,
+	"application_name": 		CHECKSET,
+	"cluster_id":       		CHECKSET,
+	"package_type":     		CHECKSET,
+	"web_container":			NOSET,
+	"edas_container_version":	NOSET,
 }
 
 func testAccCheckEdasK8sApplicationDestroy(s *terraform.State) error {
@@ -286,25 +385,31 @@ func resourceEdasK8sApplicationConfigDependence(name string) string {
 		  cidr_block = "10.1.1.0/24"
 		  availability_zone = data.alicloud_zones.default.zones.0.id
 		}
-		
-		resource "alicloud_cs_managed_kubernetes" "default" {
-		  worker_instance_types = [data.alicloud_instance_types.default.instance_types.0.id]
+
+		resource "alicloud_slb" "default" {
 		  name = var.name
-		  worker_vswitch_ids = [alicloud_vswitch.default.id]
-		  worker_number = 				"6"
-		  password =                    "Test12345"
-		  pod_cidr =                   	"172.20.0.0/16"
-		  service_cidr =               	"172.21.0.0/20"
-		  worker_disk_size =            "50"
-		  worker_disk_category =        "cloud_ssd"
-		  worker_data_disk_size =       "20"
-		  worker_data_disk_category =   "cloud_ssd"
-		  worker_instance_charge_type = "PostPaid"
-		  slb_internet_enabled =        "true"
+		  vswitch_id = alicloud_vswitch.default.id
+		  address_type = "internet"
 		}
 		
-		resource "alicloud_edas_k8s_cluster" "default" {
-		  cs_cluster_id = alicloud_cs_managed_kubernetes.default.id
-		}
+		//resource "alicloud_cs_managed_kubernetes" "default" {
+		//  worker_instance_types = [data.alicloud_instance_types.default.instance_types.0.id]
+		//  name = var.name
+		//  worker_vswitch_ids = [alicloud_vswitch.default.id]
+		//  worker_number = 				"6"
+		//  password =                    "Test12345"
+		//  pod_cidr =                   	"172.20.0.0/16"
+		//  service_cidr =               	"172.21.0.0/20"
+		//  worker_disk_size =            "50"
+		//  worker_disk_category =        "cloud_ssd"
+		//  worker_data_disk_size =       "20"
+		//  worker_data_disk_category =   "cloud_ssd"
+		//  worker_instance_charge_type = "PostPaid"
+		//  slb_internet_enabled =        "true"
+		//}
+		//
+		//resource "alicloud_edas_k8s_cluster" "default" {
+		//  cs_cluster_id = alicloud_cs_managed_kubernetes.default.id
+		//}
 		`, name)
 }

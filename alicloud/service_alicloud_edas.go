@@ -316,13 +316,13 @@ func (e *EdasService) DescribeEdasSlbAttachment(id string) (*edas.Applcation, er
 }
 
 type CommandArg struct {
-	argument string `json:"argument" xml:"argument"`
+	Argument string `json:"argument" xml:"argument"`
 }
 
 func (e *EdasService) GetK8sCommandArgs(args []interface{}) (string, error) {
-	aString := make([]CommandArg, len(args))
-	for i, v := range args {
-		aString[i].argument = v.(string)
+	aString := make([]CommandArg, 0)
+	for _, v := range args {
+		aString = append(aString, CommandArg{Argument: v.(string)})
 	}
 	b, err := json.Marshal(aString)
 	if err != nil {
@@ -332,14 +332,14 @@ func (e *EdasService) GetK8sCommandArgs(args []interface{}) (string, error) {
 }
 
 type K8sEnv struct {
-	name  string `json:"name" xml:"name"`
-	value string `json:"value" xml:"value"`
+	Name  string `json:"name" xml:"name"`
+	Value string `json:"value" xml:"value"`
 }
 
 func (e *EdasService) GetK8sEnvs(envs map[string]interface{}) (string, error) {
 	k8sEnvs := make([]K8sEnv, 0)
 	for n, v := range envs {
-		k8sEnvs = append(k8sEnvs, K8sEnv{name: n, value: v.(string)})
+		k8sEnvs = append(k8sEnvs, K8sEnv{Name: n, Value: v.(string)})
 	}
 
 	b, err := json.Marshal(k8sEnvs)
@@ -428,15 +428,4 @@ func (e *EdasService) DescribeEdasK8sApplication(appId string) (*edas.Applcation
 	v := response.Applcation
 
 	return &v, nil
-}
-
-func (e *EdasService) DescribeEdasK8sApplicationPackageAttachment(id string) (*edas.Applcation, error) {
-	application := &edas.Applcation{}
-	v := strings.Split(id, ":")
-	o, err := e.DescribeEdasK8sApplication(v[0])
-	if err != nil {
-		return application, WrapError(err)
-	}
-
-	return o, nil
 }

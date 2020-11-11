@@ -32,7 +32,6 @@ func resourceAlicloudEdasK8sApplication() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"application_name": {
 				Type:     schema.TypeString,
-				ForceNew: true,
 				Required: true,
 			},
 			"cluster_id": {
@@ -43,102 +42,57 @@ func resourceAlicloudEdasK8sApplication() *schema.Resource {
 			"replicas": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Computed: true,
+				Default:  1,
 			},
 			"image_url": {
 				Type:          schema.TypeString,
-				Computed:      true,
 				Optional:      true,
 				ConflictsWith: []string{"package_url"},
 			},
 			"package_type": {
 				Type:         schema.TypeString,
-				Computed:     true,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"FatJar", "War", "Image"}, false),
-			},
-			"intranet_target_port": {
-				Type:     schema.TypeInt,
-				ForceNew: true,
-				Optional: true,
-			},
-			"intranet_slb_port": {
-				Type:     schema.TypeInt,
-				ForceNew: true,
-				Optional: true,
+				Default:      "Image",
 			},
 			"application_descriotion": {
 				Type:     schema.TypeString,
-				Computed: true,
-				Optional: true,
-			},
-			"repo_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-				Optional: true,
-			},
-			"limit_cpu": {
-				Type:     schema.TypeInt,
-				Computed: true,
 				Optional: true,
 			},
 			"limit_mem": {
 				Type:     schema.TypeInt,
-				Computed: true,
-				Optional: true,
-			},
-			"requests_cpu": {
-				Type:     schema.TypeInt,
-				Computed: true,
 				Optional: true,
 			},
 			"requests_mem": {
 				Type:     schema.TypeInt,
-				Computed: true,
 				Optional: true,
 			},
 			"command": {
 				Type:     schema.TypeString,
-				Computed: true,
 				Optional: true,
 			},
 			"command_args": {
 				Type:     schema.TypeList,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Computed: true,
 				Optional: true,
-			},
-			"intranet_slb_protocol": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"TCP", "HTTP", "HTTPS"}, false),
-			},
-			"intranet_slb_id": {
-				Optional: true,
-				Type:     schema.TypeString,
-				ForceNew: true,
 			},
 			"internet_slb_id": {
 				Optional: true,
 				Type:     schema.TypeString,
-				ForceNew: true,
 			},
 			"internet_slb_protocol": {
 				Optional:     true,
 				Type:         schema.TypeString,
-				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"TCP", "HTTP", "HTTPS"}, false),
 			},
 			"internet_slb_port": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				ForceNew: true,
 			},
 			"internet_target_port": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				ForceNew: true,
 			},
 			"envs": {
 				Type: schema.TypeMap,
@@ -146,285 +100,74 @@ func resourceAlicloudEdasK8sApplication() *schema.Resource {
 					Type: schema.TypeString,
 				},
 				Optional: true,
-				ForceNew: true,
 			},
 			"pre_stop": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 			"post_start": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 			"liveness": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 			"readiness": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 			"nas_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"mount_descs": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"local_volume": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"namespace": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 			"logical_region_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 			"package_url": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				Computed:      true,
 				ConflictsWith: []string{"image_url"},
 			},
 			"package_version": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 			"jdk": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"web_container": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"edas_container_version": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
-			},
-			"uri_encoding": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
-			"use_body_encoding": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				ForceNew: true,
 			},
 			"requests_m_cpu": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Computed: true,
 			},
 			"limit_m_cpu": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Computed: true,
 			},
 		},
 	}
-}
-
-func resourceAlicloudEdasK8sApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
-	var packageVersion string
-
-	client := meta.(*connectivity.AliyunClient)
-	edasService := EdasService{client}
-	request := edas.CreateDeployK8sApplicationRequest()
-	request.AppId = d.Id()
-	request.RegionId = client.RegionId
-
-	packageType, err := edasService.QueryK8sAppPackageType(d.Id())
-	if err != nil {
-		return WrapError(err)
-	}
-	if strings.ToLower(packageType) == "image" {
-		var image string
-		if v, ok := d.GetOk("image_url"); ok {
-			image = v.(string)
-		}
-		if len(image) == 0 {
-			return WrapError(Error("image_url needed for image type application"))
-		}
-		request.Image = image
-	} else {
-		if v, ok := d.GetOk("package_url"); !ok {
-			return WrapError(Error("package_url is needed for creating fatjar k8s application"))
-		} else {
-			request.PackageUrl = v.(string)
-		}
-		if v, ok := d.GetOk("package_version"); !ok {
-			packageVersion = strconv.FormatInt(time.Now().Unix(), 10)
-		} else {
-			packageVersion = v.(string)
-		}
-		request.PackageVersion = packageVersion
-		if v, ok := d.GetOk("jdk"); !ok {
-			return WrapError(Error("jdk is needed for creating non-image k8s application"))
-		} else {
-			request.JDK = v.(string)
-		}
-		if strings.ToLower(packageType) == "war" {
-			var webContainer string
-			var edasContainer string
-			if v, ok := d.GetOk("web_container"); ok {
-				webContainer = v.(string)
-			}
-			if v, ok := d.GetOk("edas_container_version"); ok {
-				edasContainer = v.(string)
-			}
-			if len(webContainer) == 0 && len(edasContainer) == 0 {
-				return WrapError(Error("web_container or edas_container_version is needed for creating war k8s application"))
-			}
-			request.WebContainer = webContainer
-			request.EdasContainerVersion = edasContainer
-		}
-	}
-
-	if v, ok := d.GetOk("pre_stop"); ok {
-		request.PreStop = v.(string)
-	}
-
-	if v, ok := d.GetOk("envs"); ok {
-		envs, err := edasService.GetK8sEnvs(v.(map[string]interface{}))
-		if err != nil {
-			return WrapError(err)
-		}
-		request.Envs = envs
-	}
-
-	if v, ok := d.GetOk("replicas"); ok {
-		request.Replicas = requests.NewInteger(v.(int))
-	}
-
-	if v, ok := d.GetOk("batch_wait_time"); ok {
-		request.BatchWaitTime = requests.NewInteger(v.(int))
-	}
-
-	if v, ok := d.GetOk("command"); ok {
-		request.Command = v.(string)
-	}
-
-	if v, ok := d.GetOk("post_start"); ok {
-		request.PostStart = v.(string)
-	}
-
-	if v, ok := d.GetOk("liveness"); ok {
-		request.Liveness = v.(string)
-	}
-
-	if v, ok := d.GetOk("readiness"); ok {
-		request.Readiness = v.(string)
-	}
-
-	if v, ok := d.GetOk("args"); ok {
-		commands, err := edasService.GetK8sCommandArgs(v.([]interface{}))
-		if err != nil {
-			return WrapError(err)
-		}
-		request.Args = commands
-	}
-
-	if v, ok := d.GetOk("limit_cpu"); ok {
-		request.CpuLimit = requests.NewInteger(v.(int))
-	}
-
-	if v, ok := d.GetOk("limit_mem"); ok {
-		request.MemoryLimit = requests.NewInteger(v.(int))
-	}
-
-	if v, ok := d.GetOk("requests_cpu"); ok {
-		request.CpuRequest = requests.NewInteger(v.(int))
-	}
-
-	if v, ok := d.GetOk("requests_mem"); ok {
-		request.MemoryRequest = requests.NewInteger(v.(int))
-	}
-
-	if v, ok := d.GetOk("nas_id"); ok {
-		request.NasId = v.(string)
-	}
-
-	if v, ok := d.GetOk("mount_descs"); ok {
-		request.MountDescs = v.(string)
-	}
-
-	if v, ok := d.GetOk("local_volume"); ok {
-		request.LocalVolume = v.(string)
-	}
-
-	if v, ok := d.GetOk("uri_encoding"); ok {
-		request.UriEncoding = v.(string)
-	}
-
-	if v, ok := d.GetOk("use_body_encoding"); ok {
-		request.UseBodyEncoding = requests.NewBoolean(v.(bool))
-	}
-
-	if v, ok := d.GetOk("update_strategy"); ok {
-		request.UpdateStrategy = v.(string)
-	}
-
-	if v, ok := d.GetOk("requests_m_cpu"); ok {
-		request.McpuRequest = requests.NewInteger(v.(int))
-	}
-
-	if v, ok := d.GetOk("limit_m_cpu"); ok {
-		request.McpuLimit = requests.NewInteger(v.(int))
-	}
-
-	if v, ok := d.GetOk("volumes_str"); ok {
-		request.VolumesStr = v.(string)
-	}
-
-	if v, ok := d.GetOk("package_version_id"); ok {
-		request.PackageVersionId = v.(string)
-	}
-
-	if v, ok := d.GetOk("change_order_desc"); ok {
-		request.ChangeOrderDesc = v.(string)
-	}
-
-	raw, err := edasService.client.WithEdasClient(func(edasClient *edas.Client) (interface{}, error) {
-		return edasClient.DeployK8sApplication(request)
-	})
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
-	}
-	addDebug(request.GetActionName(), raw, request.RoaRequest, request)
-
-	response, _ := raw.(*edas.DeployK8sApplicationResponse)
-	changeOrderId := response.ChangeOrderId
-	if response.Code != 200 {
-		return WrapError(Error("deploy k8s application failed for " + response.Message))
-	}
-
-	if len(changeOrderId) > 0 {
-		stateConf := BuildStateConf([]string{"0", "1"}, []string{"2"}, d.Timeout(schema.TimeoutCreate), 5*time.Minute, edasService.EdasChangeOrderStatusRefreshFunc(changeOrderId, []string{"3", "6", "10"}))
-		if _, err := stateConf.WaitForState(); err != nil {
-			return WrapErrorf(err, IdMsg, d.Id())
-		}
-	}
-
-	return resourceAlicloudEdasK8sApplicationRead(d, meta)
 }
 
 func resourceAlicloudEdasK8sApplicationCreate(d *schema.ResourceData, meta interface{}) error {
@@ -444,9 +187,6 @@ func resourceAlicloudEdasK8sApplicationCreate(d *schema.ResourceData, meta inter
 			return WrapError(Error("image_url is needed for creating image k8s application"))
 		} else {
 			request.ImageUrl = v.(string)
-		}
-		if v, ok := d.GetOk("repo_id"); ok {
-			request.RepoId = v.(string)
 		}
 	} else {
 		if v, ok := d.GetOk("package_url"); !ok {
@@ -483,28 +223,12 @@ func resourceAlicloudEdasK8sApplicationCreate(d *schema.ResourceData, meta inter
 
 	request.Replicas = requests.NewInteger(d.Get("replicas").(int))
 
-	if v, ok := d.GetOk("intranet_target_port"); ok {
-		request.IntranetTargetPort = requests.NewInteger(v.(int))
-	}
-
-	if v, ok := d.GetOk("intranet_slb_port"); ok {
-		request.InternetSlbPort = requests.NewInteger(v.(int))
-	}
-
 	if v, ok := d.GetOk("application_descriotion"); ok {
 		request.ApplicationDescription = v.(string)
 	}
 
-	if v, ok := d.GetOk("limit_cpu"); ok {
-		request.LimitCpu = requests.NewInteger(v.(int))
-	}
-
 	if v, ok := d.GetOk("limit_mem"); ok {
 		request.LimitMem = requests.NewInteger(v.(int))
-	}
-
-	if v, ok := d.GetOk("requests_cpu"); ok {
-		request.RequestsCpu = requests.NewInteger(v.(int))
 	}
 
 	if v, ok := d.GetOk("requests_mem"); ok {
@@ -521,14 +245,6 @@ func resourceAlicloudEdasK8sApplicationCreate(d *schema.ResourceData, meta inter
 			return WrapError(err)
 		}
 		request.CommandArgs = commands
-	}
-
-	if v, ok := d.GetOk("intranet_slb_protocol"); ok {
-		request.IntranetSlbProtocol = v.(string)
-	}
-
-	if v, ok := d.GetOk("intranet_slb_id"); ok {
-		request.IntranetSlbId = v.(string)
 	}
 
 	if v, ok := d.GetOk("internet_slb_id"); ok {
@@ -591,14 +307,6 @@ func resourceAlicloudEdasK8sApplicationCreate(d *schema.ResourceData, meta inter
 		request.LogicalRegionId = v.(string)
 	}
 
-	if v, ok := d.GetOk("uri_encoding"); ok {
-		request.UriEncoding = v.(string)
-	}
-
-	if v, ok := d.GetOk("use_body_encoding"); ok {
-		request.UseBodyEncoding = requests.NewBoolean(v.(bool))
-	}
-
 	if v, ok := d.GetOk("requests_m_cpu"); ok {
 		request.RequestsmCpu = requests.NewInteger(v.(int))
 	}
@@ -656,34 +364,48 @@ func resourceAlicloudEdasK8sApplicationRead(d *schema.ResourceData, meta interfa
 	d.Set("replicas", response.App.Instances)
 	d.Set("package_type", response.App.ApplicationType)
 	d.Set("image_url", response.ImageInfo.ImageUrl)
-
+	var envs map[string]string
+	for _, e := range response.App.EnvList.Env {
+		envs[e.Name] = e.Value
+	}
+	d.Set("envs", envs)
 	d.Set("command", response.App.Cmd)
 	d.Set("command_args", response.App.CmdArgs.CmdArg)
 
-	d.Set("repo_id", response.ImageInfo.RepoId)
-	d.Set("package_url", "")
-	d.Set("package_version", "")
 	allDeploy := response.DeployGroups.DeployGroup
-	for v := range allDeploy {
-		d.Set("package_url", allDeploy[v].PackageUrl)
-		d.Set("package_version", allDeploy[v].PackageVersion)
-		d.Set("limit_cpu", allDeploy[v].CpuLimit)
-		d.Set("limit_mem", allDeploy[v].MemoryLimit)
-
-		d.Set("requests_mem", allDeploy[v].MemoryRequest)
-
-		cpu, err := strconv.Atoi(allDeploy[v].CpuRequest)
-
-		if err != nil {
-			if NotFoundError(err) {
-				log.Printf("[DEBUG] Resource alicloud_edas_k8s_application ecsService.DescribeEdasK8sApplication Failed!!! %s", err)
-				d.SetId("")
-				return nil
-			}
-			return WrapError(err)
+	for _, v := range allDeploy {
+		if len(v.PackageUrl) > 0 {
+			d.Set("package_url", v.PackageUrl)
 		}
-		d.Set("requests_m_cpu", cpu*1000)
-		d.Set("requests_cpu", cpu)
+		if len(v.PackageVersion) > 0 {
+			d.Set("package_version", v.PackageVersion)
+		}
+		if len(v.MemoryLimit) > 0 {
+			d.Set("limit_mem", v.MemoryLimit)
+		}
+		if len(v.MemoryRequest) > 0 {
+			d.Set("requests_mem", v.MemoryRequest)
+		}
+
+		if len(v.CpuRequest) > 0 {
+			cpu, err := strconv.Atoi(v.CpuRequest)
+
+			if err != nil {
+				if NotFoundError(err) {
+					log.Printf("[DEBUG] Resource alicloud_edas_k8s_application ecsService.DescribeEdasK8sApplication Failed!!! %s", err)
+					d.SetId("")
+					return nil
+				}
+				return WrapError(err)
+			}
+			d.Set("requests_m_cpu", cpu*1000)
+		}
+
+		for _, c := range v.Components.ComponentsItem {
+			if strings.Contains(c.ComponentKey, "Open JDK") {
+				d.Set("jdk", c.ComponentKey)
+			}
+		}
 	}
 
 	d.Set("edas_container_version", response.App.EdasContainerVersion)
@@ -692,8 +414,205 @@ func resourceAlicloudEdasK8sApplicationRead(d *schema.ResourceData, meta interfa
 	d.Set("liveness", response.Conf.Liveness)
 	d.Set("readiness", response.Conf.Readiness)
 	d.Set("namespace", response.NameSpace)
-	d.Set("logical_region_id", response.RegionId)
 	return nil
+}
+
+func resourceAlicloudEdasK8sApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*connectivity.AliyunClient)
+	edasService := EdasService{client}
+	request := edas.CreateDeployK8sApplicationRequest()
+	request.AppId = d.Id()
+	request.RegionId = client.RegionId
+
+	d.Partial(true)
+	packageType, err := edasService.QueryK8sAppPackageType(d.Id())
+	if err != nil {
+		return WrapError(err)
+	}
+	update := false
+	if strings.ToLower(packageType) == "image" {
+		if d.HasChange("image_url") {
+			update = true
+			request.Image = d.Get("image_url").(string)
+			d.SetPartial("image_url")
+		} else if v, ok := d.GetOk("image_url"); !ok {
+			return WrapError(Error("image_url is needed for creating image k8s application"))
+		} else {
+			request.Image = v.(string)
+		}
+	} else {
+		if d.HasChange("package_url") {
+			update = true
+			request.PackageUrl = d.Get("package_url").(string)
+			d.SetPartial("package_url")
+		} else if v, ok := d.GetOk("package_url"); !ok {
+			return WrapError(Error("package_url is needed for creating fatjar k8s application"))
+		} else {
+			request.PackageUrl = v.(string)
+		}
+		if v, ok := d.GetOk("package_version"); !ok {
+			request.PackageVersion = strconv.FormatInt(time.Now().Unix(), 10)
+		} else {
+			request.PackageVersion = v.(string)
+		}
+		if d.HasChange("jdk") {
+			update = true
+			request.JDK = d.Get("jdk").(string)
+			d.SetPartial("jdk")
+		} else if v, ok := d.GetOk("jdk"); !ok {
+			return WrapError(Error("jdk is needed for creating non-image k8s application"))
+		} else {
+			request.JDK = v.(string)
+		}
+		if strings.ToLower(packageType) == "war" {
+			var webContainer string
+			var edasContainer string
+			if d.HasChange("web_container") {
+				update = true
+				webContainer = d.Get("web_container").(string)
+				d.SetPartial("web_container")
+			} else if v, ok := d.GetOk("web_container"); ok {
+				webContainer = v.(string)
+			}
+			if d.HasChange("edas_container_version") {
+				update = true
+				edasContainer = d.Get("edas_container_version").(string)
+				d.SetPartial("edas_container_version")
+			} else if v, ok := d.GetOk("edas_container_version"); ok {
+				edasContainer = v.(string)
+			}
+			if len(webContainer) == 0 && len(edasContainer) == 0 {
+				return WrapError(Error("web_container or edas_container_version is needed for creating war k8s application"))
+			}
+			request.WebContainer = webContainer
+			request.EdasContainerVersion = edasContainer
+		}
+	}
+
+	if d.HasChange("replicas") {
+		update = true
+		request.Replicas = requests.NewInteger(d.Get("replicas").(int))
+		d.SetPartial("replicas")
+	} else {
+		request.Replicas = requests.NewInteger(d.Get("replicas").(int))
+	}
+
+	if d.HasChange("limit_mem") {
+		update = true
+		request.MemoryLimit = requests.NewInteger(d.Get("limit_mem").(int))
+		d.SetPartial("limit_mem")
+	}
+
+	if d.HasChange("requests_mem") {
+		update = true
+		request.MemoryRequest = requests.NewInteger(d.Get("requests_mem").(int))
+		d.SetPartial("requests_mem")
+	}
+
+	if d.HasChange("command") {
+		update = true
+		request.Command = d.Get("command").(string)
+		d.SetPartial("command")
+	}
+
+	if d.HasChange("command_args") {
+		update = true
+		d.SetPartial("command_args")
+		commands, err := edasService.GetK8sCommandArgs(d.Get("command_args").([]interface{}))
+		if err != nil {
+			return WrapError(err)
+		}
+		request.Args = commands
+	}
+
+	if d.HasChange("envs") {
+		update = true
+		envs, err := edasService.GetK8sEnvs(d.Get("envs").(map[string]interface{}))
+		if err != nil {
+			return WrapError(err)
+		}
+		request.Envs = envs
+		d.SetPartial("envs")
+	}
+
+	if d.HasChange("pre_stop") {
+		update = true
+		request.PreStop = d.Get("pre_stop").(string)
+		d.SetPartial("pre_stop")
+	}
+
+	if d.HasChange("post_start") {
+		update = true
+		request.PostStart = d.Get("post_start").(string)
+		d.SetPartial("post_start")
+	}
+
+	if d.HasChange("liveness") {
+		update = true
+		request.Liveness = d.Get("liveness").(string)
+		d.SetPartial("liveness")
+	}
+
+	if d.HasChange("readiness") {
+		update = true
+		request.Readiness = d.Get("readiness").(string)
+		d.SetPartial("readiness")
+	}
+
+	if d.HasChange("nas_id") {
+		update = true
+		request.NasId = d.Get("nas_id").(string)
+		d.SetPartial("nas_id")
+	}
+
+	if d.HasChange("mount_descs") {
+		update = true
+		request.MountDescs = d.Get("mount_descs").(string)
+		d.SetPartial("mount_descs")
+	}
+
+	if d.HasChange("local_volume") {
+		update = true
+		request.LocalVolume = d.Get("local_volume").(string)
+		d.SetPartial("local_volume")
+	}
+
+	if d.HasChange("requests_m_cpu") {
+		update = true
+		request.McpuRequest = requests.NewInteger(d.Get("requests_m_cpu").(int))
+		d.SetPartial("requests_m_cpu")
+	}
+
+	if d.HasChange("limit_m_cpu") {
+		update = true
+		request.McpuLimit = requests.NewInteger(d.Get("limit_m_cpu").(int))
+		d.SetPartial("limit_m_cpu")
+	}
+
+	if update {
+		raw, err := edasService.client.WithEdasClient(func(edasClient *edas.Client) (interface{}, error) {
+			return edasClient.DeployK8sApplication(request)
+		})
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
+		}
+		addDebug(request.GetActionName(), raw, request.RoaRequest, request)
+
+		response, _ := raw.(*edas.DeployK8sApplicationResponse)
+		changeOrderId := response.ChangeOrderId
+		if response.Code != 200 {
+			return WrapError(Error("deploy k8s application failed for " + response.Message))
+		}
+
+		if len(changeOrderId) > 0 {
+			stateConf := BuildStateConf([]string{"0", "1"}, []string{"2"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, edasService.EdasChangeOrderStatusRefreshFunc(changeOrderId, []string{"3", "6", "10"}))
+			if _, err := stateConf.WaitForState(); err != nil {
+				return WrapErrorf(err, IdMsg, d.Id())
+			}
+		}
+	}
+
+	return resourceAlicloudEdasK8sApplicationRead(d, meta)
 }
 
 func resourceAlicloudEdasK8sApplicationDelete(d *schema.ResourceData, meta interface{}) error {
@@ -724,7 +643,7 @@ func resourceAlicloudEdasK8sApplicationDelete(d *schema.ResourceData, meta inter
 		changeOrderId := response.ChangeOrderId
 
 		if len(changeOrderId) > 0 {
-			stateConf := BuildStateConf([]string{"0", "1"}, []string{"2"}, d.Timeout(schema.TimeoutCreate), 5*time.Minute, edasService.EdasChangeOrderStatusRefreshFunc(changeOrderId, []string{"3", "6", "10"}))
+			stateConf := BuildStateConf([]string{"0", "1"}, []string{"2"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, edasService.EdasChangeOrderStatusRefreshFunc(changeOrderId, []string{"3", "6", "10"}))
 			if _, err := stateConf.WaitForState(); err != nil {
 				return resource.NonRetryableError(WrapErrorf(err, IdMsg, d.Id()))
 			}
