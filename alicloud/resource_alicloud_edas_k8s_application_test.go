@@ -150,55 +150,55 @@ func TestAccAlicloudEdasK8sApplication_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfig(map[string]interface{}{
-					"application_name": "${var.name}",
-					"cluster_id":       "${alicloud_edas_k8s_cluster.default.id}",
-					"package_type":     "Image",
-					"image_url":        image,
-					"replicas":         "2",
+					"application_name":      "${var.name}",
+					"cluster_id":            "${alicloud_edas_k8s_cluster.default.id}",
+					"package_type":          "Image",
+					"image_url":             image,
+					"replicas":              "2",
 					"internet_slb_protocol": "TCP",
-					"internet_slb_port": "8080",
-					"internet_target_port": "18082",
+					"internet_slb_port":     "8080",
+					"internet_target_port":  "18082",
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheck(map[string]string{
-						"image_url": image,
-						"replicas":  "2",
+						"image_url":             image,
+						"replicas":              "2",
 						"internet_slb_protocol": CHECKSET,
-						"internet_slb_port": CHECKSET,
-						"internet_target_port":	CHECKSET,
+						"internet_slb_port":     CHECKSET,
+						"internet_target_port":  CHECKSET,
 					}),
 				),
 			},
 
 			{
-				ResourceName:      resourceId,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceId,
+				ImportState:             true,
+				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"internet_slb_protocol", "internet_slb_port", "internet_target_port"},
 			},
 
 			{
 				Config: testAccConfig(map[string]interface{}{
-					"replicas":  "3",
-					"image_url": updateImg,
-					"command": "/bin/sh",
-					"command_args": []string {"-c","sleep 1000"},
-					"envs": map[string]string {"a":"b"},
-					"limit_m_cpu": "500",
-					"limit_mem": "1000",
+					"replicas":       "3",
+					"image_url":      updateImg,
+					"command":        "/bin/sh",
+					"command_args":   []string{"-c", "sleep 1000"},
+					"envs":           map[string]string{"a": "b"},
+					"limit_m_cpu":    "500",
+					"limit_mem":      "1000",
 					"requests_m_cpu": "100",
-					"requests_mem": "100",
+					"requests_mem":   "100",
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheck(map[string]string{
-						"image_url": updateImg,
-						"replicas":  "3",
-						"command": "/bin/sh",
+						"image_url":      updateImg,
+						"replicas":       "3",
+						"command":        "/bin/sh",
 						"command_args.#": "2",
-						"limit_m_cpu":	CHECKSET,
-						"limit_mem":	CHECKSET,
-						"requests_m_cpu":	CHECKSET,
-						"requests_mem": CHECKSET,
+						"limit_m_cpu":    CHECKSET,
+						"limit_mem":      CHECKSET,
+						"requests_m_cpu": CHECKSET,
+						"requests_mem":   CHECKSET,
 					}),
 				),
 			},
@@ -242,8 +242,8 @@ func TestAccAlicloudEdasK8sApplicationJar_basic(t *testing.T) {
 					"package_url":      packageUrl,
 					"jdk":              "Open JDK 8",
 					"replicas":         "1",
-					"readiness":   `{\"failureThreshold\": 3,\"initialDelaySeconds\": 5,\"successThreshold\": 1,\"timeoutSeconds\": 1,\"tcpSocket\":{\"host\":\"\", \"port\":18081}}`,
-					"liveness":    `{\"failureThreshold\": 3,\"initialDelaySeconds\": 5,\"successThreshold\": 1,\"timeoutSeconds\": 1,\"tcpSocket\":{\"host\":\"\", \"port\":18081}}`,
+					"readiness":        `{\"failureThreshold\": 3,\"initialDelaySeconds\": 5,\"successThreshold\": 1,\"timeoutSeconds\": 1,\"tcpSocket\":{\"host\":\"\", \"port\":18081}}`,
+					"liveness":         `{\"failureThreshold\": 3,\"initialDelaySeconds\": 5,\"successThreshold\": 1,\"timeoutSeconds\": 1,\"tcpSocket\":{\"host\":\"\", \"port\":18081}}`,
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheck(map[string]string{
@@ -251,16 +251,16 @@ func TestAccAlicloudEdasK8sApplicationJar_basic(t *testing.T) {
 						"package_url":  packageUrl,
 						"replicas":     "1",
 						"jdk":          "Open JDK 8",
-						"readiness": CHECKSET,
-						"liveness":  CHECKSET,
+						"readiness":    CHECKSET,
+						"liveness":     CHECKSET,
 					}),
 				),
 			},
 
 			{
-				ResourceName:      resourceId,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceId,
+				ImportState:             true,
+				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"package_url"},
 			},
 
@@ -270,15 +270,15 @@ func TestAccAlicloudEdasK8sApplicationJar_basic(t *testing.T) {
 					"replicas":    "2",
 					"jdk":         "Dragonwell JDK 8",
 					"readiness":   "{}",
-					"liveness":	   "{}",
+					"liveness":    "{}",
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheck(map[string]string{
 						"package_url": updateUrl,
-						"replicas":  "2",
-						"jdk":       "Dragonwell JDK 8",
+						"replicas":    "2",
+						"jdk":         "Dragonwell JDK 8",
 						"readiness":   CHECKSET,
-						"liveness":	   CHECKSET,
+						"liveness":    CHECKSET,
 					}),
 				),
 			},
@@ -335,9 +335,9 @@ func TestAccAlicloudEdasK8sApplication_multi(t *testing.T) {
 }
 
 var edasK8sApplicationBasicMap = map[string]string{
-	"application_name": 		CHECKSET,
-	"cluster_id":       		CHECKSET,
-	"package_type":     		CHECKSET,
+	"application_name": CHECKSET,
+	"cluster_id":       CHECKSET,
+	"package_type":     CHECKSET,
 }
 
 func testAccCheckEdasK8sApplicationDestroy(s *terraform.State) error {

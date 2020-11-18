@@ -19,9 +19,9 @@ type EdasService struct {
 }
 
 type Hook struct {
-	Exec 		*Exec		`json:"exec,omitempty"`
-	HttpGet 	*HttpGet 	`json:"httpGet,omitempty"`
-	TcpSocket 	*TcpSocket 	`json:"tcpSocket,omitempty"`
+	Exec      *Exec      `json:"exec,omitempty"`
+	HttpGet   *HttpGet   `json:"httpGet,omitempty"`
+	TcpSocket *TcpSocket `json:"tcpSocket,omitempty"`
 }
 
 type Exec struct {
@@ -29,28 +29,28 @@ type Exec struct {
 }
 
 type HttpGet struct {
-	Path string 	`json:"path"`
-	Port int		`json:"port"`
-	Scheme string  	`json:"scheme"`
+	Path        string       `json:"path"`
+	Port        int          `json:"port"`
+	Scheme      string       `json:"scheme"`
 	HttpHeaders []HttpHeader `json:"httpHeaders"`
 }
 
 type HttpHeader struct {
-	Name string 	`json:"name"`
-	Value string 	`json:"value"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }
 
-type TcpSocket  struct {
-	Host string 	`json:"host"`
-	Port int		`json:"port"`
+type TcpSocket struct {
+	Host string `json:"host"`
+	Port int    `json:"port"`
 }
 
 type Prober struct {
-	FailureThreshold 	int `json:"failureThreshold"`
+	FailureThreshold    int `json:"failureThreshold"`
 	InitialDelaySeconds int `json:"initialDelaySeconds"`
-	SuccessThreshold 	int `json:"successThreshold"`
-	TimeoutSeconds		int `json:"timeoutSeconds"`
-	Hook `json:",inline"`
+	SuccessThreshold    int `json:"successThreshold"`
+	TimeoutSeconds      int `json:"timeoutSeconds"`
+	Hook                `json:",inline"`
 }
 
 func (e *EdasService) GetChangeOrderStatus(id string) (info *edas.ChangeOrderInfo, err error) {
@@ -537,4 +537,3 @@ func (e *EdasService) ReadinessEqual(old, new interface{}) bool {
 	}
 	return reflect.DeepEqual(oldProber, newProber)
 }
-

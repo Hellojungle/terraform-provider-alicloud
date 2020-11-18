@@ -11,7 +11,7 @@ description: |-
 
 Create an EDAS k8s application.For information about EDAS K8s Application and how to use it, see [What is EDAS K8s Application](https://www.alibabacloud.com/help/doc-detail/85029.htm). 
 
--> **NOTE:** Available in 1.95.0+
+-> **NOTE:** Available in 1.103.3+
 
 ## Example Usage
 
@@ -79,7 +79,6 @@ The following arguments are supported:
 * `package_type` - (Required, ForceNew) Application package type. Optional parameter values include: FatJar, WAR and Image.
 * `replicas` - (Optional, Computed) Number of application instances.
 * `image_url` - (Optional, Computed) Mirror address. When the package_type is set to 'Image', this parameter item is required.
-* `repo_id` - (Optional, Computed) The repository id of Image
 * `application_descriotion` - (Optional, Computed) The description of the application
 * `package_url` - (Optional, Computed) The url of the package to deploy.Applications deployed through FatJar or WAR packages need to configure it.
 * `package_version` - (Optional, Computed) The version number of the deployment package. WAR and FatJar types are required. Please customize its meaning.
@@ -87,10 +86,6 @@ The following arguments are supported:
 * `web_container` - (Optional, ForceNew) The Tomcat version that the deployment package depends on. Applicable to Spring Cloud and Dubbo applications deployed through WAR packages. Image does not support this parameter.
 * `edas_container_version` - (Optional, Computed) EDAS-Container version that the deployed package depends on. Image does not support this parameter.
 
-* `intranet_target_port` - (Optional, ForceNew) The internal SLB back-end port, is also the service port of the application, ranging from 1 to 65535.
-* `intranet_slb_port` - (Optional, ForceNew) Intranet SLB front-end port, range 1~65535.
-* `intranet_slb_protocol` - (Optional, ForceNew) The private network SLB protocol, supports TCP, HTTP and HTTPS protocols.
-* `intranet_slb_id` - (Optional, ForceNew) Private network SLB ID. If not configured, EDAS will automatically purchase a new SLB for user.
 * `internet_target_port` - (Optional, ForceNew) The private SLB back-end port, is also the service port of the application, ranging from 1 to 65535.
 * `internet_slb_port` - (Optional, ForceNew) The public network SLB front-end port, range 1~65535.
 * `internet_slb_protocol` - (Optional, ForceNew) The public network SLB protocol supports TCP, HTTP and HTTPS protocols.
@@ -114,8 +109,6 @@ The following arguments are supported:
 * `local_volume` - (Optional, ForceNew) The configuration of the host file mounted to the container. For example: `[{"type":"","nodePath":"/localfiles","mountPath":"/app/files"},{"type":"Directory","nodePath":"/mnt", "mountPath":"/app/storage"}]`. Among them, nodePath is the host path; mountPath is the path in the container; type is the mount type.
 * `namespace` - (Optional, Computed) The namespace of the K8s cluster, it will determine which K8s namespace your application is deployed in. The default is 'default'.
 * `logical_region_id` - (Optional, Computed) The ID corresponding to the EDAS namespace, the non-default namespace must be filled in.
-* `uri_encoding` - (Optional, ForceNew) URI encoding method supports ISO-8859-1, GBK, GB2312 and UTF-8. The application configuration does not set this parameter and uses the Tomcat default value.
-* `use_body_encoding` - (Optional, ForceNew) Whether useBodyEncodingForURI is enabled 
 
 ## Attributes Reference
 
