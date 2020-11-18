@@ -57,14 +57,14 @@ func TestAccAlicloudCSManagedKubernetes_basic(t *testing.T) {
 					"slb_internet_enabled":        "true",
 					"cluster_spec":                "ack.pro.small",
 					"resource_group_id":           "${data.alicloud_resource_manager_resource_groups.default.groups.0.id}",
-					"deletion_protection":         "false",
+					"deletion_protection":         "true",
 					"timezone":                    "Asia/Shanghai",
 					"os_type":                     "Linux",
 					"platform":                    "CentOS",
 					"node_port_range":             "30000-32767",
 					"cluster_domain":              "cluster.local",
 					"custom_san":                  "www.terraform.io",
-					"encryption_provider_key":     "${data.alicloud_kms_secrets.default.secrets.0.id}",
+					"encryption_provider_key":     "${data.alicloud_kms_keys.default.keys.0.id}",
 					"runtime":                     map[string]interface{}{"Name": "docker", "Version": "19.03.5"},
 					"rds_instances":               []string{"${alicloud_db_instance.default.id}"},
 					"taints":                      []map[string]string{{"key": "tf-key1", "value": "tf-value1", "effect": "NoSchedule"}},
@@ -83,7 +83,7 @@ func TestAccAlicloudCSManagedKubernetes_basic(t *testing.T) {
 						"slb_internet_enabled":      "true",
 						"cluster_spec":              "ack.pro.small",
 						"resource_group_id":         CHECKSET,
-						"deletion_protection":       "false",
+						"deletion_protection":       "true",
 						"timezone":                  "Asia/Shanghai",
 						"os_type":                   "Linux",
 						"platform":                  "CentOS",
@@ -123,11 +123,41 @@ func TestAccAlicloudCSManagedKubernetes_basic(t *testing.T) {
 			},
 			{
 				Config: testAccConfig(map[string]interface{}{
+					"name": "tf-managed-k8s",
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheck(map[string]string{
+						"name": "tf-managed-k8s",
+					}),
+				),
+			},
+			{
+				Config: testAccConfig(map[string]interface{}{
+					"deletion_protection": "false",
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheck(map[string]string{
+						"deletion_protection": "false",
+					}),
+				),
+			},
+			{
+				Config: testAccConfig(map[string]interface{}{
 					"worker_number": "5",
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheck(map[string]string{
 						"worker_number": "5",
+					}),
+				),
+			},
+			{
+				Config: testAccConfig(map[string]interface{}{
+					"worker_number": "3",
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheck(map[string]string{
+						"worker_number": "3",
 					}),
 				),
 			},
@@ -154,7 +184,7 @@ data "alicloud_instance_types" "default" {
 
 data "alicloud_resource_manager_resource_groups" "default" {}
 
-data "alicloud_kms_secrets" "default" {}
+data "alicloud_kms_keys" "default" {}
 
 resource "alicloud_vpc" "default" {
   name = "${var.name}"

@@ -24,7 +24,7 @@ func resourceAlicloudDBReadonlyInstance() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(20 * time.Minute),
+			Create: schema.DefaultTimeout(60 * time.Minute),
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(20 * time.Minute),
 		},
@@ -136,7 +136,7 @@ func resourceAlicloudDBReadonlyInstanceCreate(d *schema.ResourceData, meta inter
 	d.SetId(resp.DBInstanceId)
 
 	// wait instance status change from Creating to running
-	stateConf := BuildStateConf([]string{"Creating"}, []string{"Running"}, d.Timeout(schema.TimeoutCreate), 5*time.Minute, rdsService.RdsDBInstanceStateRefreshFunc(d.Id(), []string{"Deleting"}))
+	stateConf := BuildStateConf([]string{"Creating"}, []string{"Running"}, d.Timeout(schema.TimeoutCreate), 15*time.Minute, rdsService.RdsDBInstanceStateRefreshFunc(d.Id(), []string{"Deleting"}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -261,17 +261,17 @@ func resourceAlicloudDBReadonlyInstanceRead(d *schema.ResourceData, meta interfa
 		return WrapError(err)
 	}
 
-	d.Set("engine", instance.Engine)
-	d.Set("master_db_instance_id", instance.MasterInstanceId)
-	d.Set("engine_version", instance.EngineVersion)
-	d.Set("instance_type", instance.DBInstanceClass)
-	d.Set("port", instance.Port)
-	d.Set("instance_storage", instance.DBInstanceStorage)
-	d.Set("zone_id", instance.ZoneId)
-	d.Set("vswitch_id", instance.VSwitchId)
-	d.Set("connection_string", instance.ConnectionString)
-	d.Set("instance_name", instance.DBInstanceDescription)
-	d.Set("resource_group_id", instance.ResourceGroupId)
+	d.Set("engine", instance["Engine"])
+	d.Set("master_db_instance_id", instance["MasterInstanceId"])
+	d.Set("engine_version", instance["EngineVersion"])
+	d.Set("instance_type", instance["DBInstanceClass"])
+	d.Set("port", instance["Port"])
+	d.Set("instance_storage", instance["DBInstanceStorage"])
+	d.Set("zone_id", instance["ZoneId"])
+	d.Set("vswitch_id", instance["VSwitchId"])
+	d.Set("connection_string", instance["ConnectionString"])
+	d.Set("instance_name", instance["DBInstanceDescription"])
+	d.Set("resource_group_id", instance["ResourceGroupId"])
 
 	if err = rdsService.RefreshParameters(d, "parameters"); err != nil {
 		return err
@@ -299,7 +299,7 @@ func resourceAlicloudDBReadonlyInstanceDelete(d *schema.ResourceData, meta inter
 		}
 		return WrapError(err)
 	}
-	if PayType(instance.PayType) == Prepaid {
+	if PayType(instance["PayType"].(string)) == Prepaid {
 		return WrapError(Error("At present, 'Prepaid' instance cannot be deleted and must wait it to be expired and release it automatically."))
 	}
 
