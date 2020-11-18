@@ -19,7 +19,7 @@ databases.
 
 ### Create a PolarDB MySQL cluster
 
-```
+```terraform
 variable "name" {
   default = "polardbClusterconfig"
 }
@@ -47,7 +47,7 @@ resource "alicloud_vswitch" "default" {
 resource "alicloud_polardb_cluster" "default" {
   db_type       = "MySQL"
   db_version    = "5.6"
-  db_node_class = "rds.mysql.s2.large"
+  db_node_class = "polar.mysql.x4.medium"
   pay_type      = "PostPaid"
   description   = var.name
   vswitch_id    = alicloud_vswitch.default.id
@@ -70,6 +70,7 @@ The following arguments are supported:
 * `auto_renew_period` - (Optional) Auto-renewal period of an cluster, in the unit of the month. It is valid when pay_type is `PrePaid`. Valid value:1, 2, 3, 6, 12, 24, 36, Default to 1.
 * `period` - (Optional) The duration that you will buy DB cluster (in month). It is valid when pay_type is `PrePaid`. Valid values: [1~9], 12, 24, 36. Default to 1.
 * `security_ips` - (Optional) List of IP addresses allowed to access all databases of an cluster. The list contains up to 1,000 IP addresses, separated by commas. Supported formats include 0.0.0.0/0, 10.23.12.24 (IP), and 10.23.12.24/24 (Classless Inter-Domain Routing (CIDR) mode. /24 represents the length of the prefix in an IP address. The range of the prefix length is [1,32]).
+* `resource_group_id` (Optional, ForceNew, Computed, Available in 1.96.0+) The ID of resource group which the PolarDB cluster belongs. If not specified, then it belongs to the default resource group.
 * `vswitch_id` - (Optional) The virtual switch ID to launch DB instances in one VPC.
 * `maintain_time` - (Optional) Maintainable time period format of the instance: HH:MMZ-HH:MMZ (UTC time)
 * `description` - (Optional) The description of cluster.

@@ -65,16 +65,17 @@ type Instance struct {
 	VlanId                     string                               `json:"VlanId" xml:"VlanId"`
 	StoppedMode                string                               `json:"StoppedMode" xml:"StoppedMode"`
 	SpotStrategy               string                               `json:"SpotStrategy" xml:"SpotStrategy"`
+	SpotDuration               int                                  `json:"SpotDuration" xml:"SpotDuration"`
 	DeletionProtection         bool                                 `json:"DeletionProtection" xml:"DeletionProtection"`
 	SecurityGroupIds           SecurityGroupIdsInDescribeInstances  `json:"SecurityGroupIds" xml:"SecurityGroupIds"`
 	InnerIpAddress             InnerIpAddressInDescribeInstances    `json:"InnerIpAddress" xml:"InnerIpAddress"`
 	PublicIpAddress            PublicIpAddressInDescribeInstances   `json:"PublicIpAddress" xml:"PublicIpAddress"`
 	RdmaIpAddress              RdmaIpAddress                        `json:"RdmaIpAddress" xml:"RdmaIpAddress"`
 	MetadataOptions            MetadataOptions                      `json:"MetadataOptions" xml:"MetadataOptions"`
+	DedicatedHostAttribute     DedicatedHostAttribute               `json:"DedicatedHostAttribute" xml:"DedicatedHostAttribute"`
 	EipAddress                 EipAddressInDescribeInstances        `json:"EipAddress" xml:"EipAddress"`
 	CpuOptions                 CpuOptions                           `json:"CpuOptions" xml:"CpuOptions"`
 	EcsCapacityReservationAttr EcsCapacityReservationAttr           `json:"EcsCapacityReservationAttr" xml:"EcsCapacityReservationAttr"`
-	DedicatedHostAttribute     DedicatedHostAttribute               `json:"DedicatedHostAttribute" xml:"DedicatedHostAttribute"`
 	DedicatedInstanceAttribute DedicatedInstanceAttribute           `json:"DedicatedInstanceAttribute" xml:"DedicatedInstanceAttribute"`
 	VpcAttributes              VpcAttributes                        `json:"VpcAttributes" xml:"VpcAttributes"`
 	NetworkInterfaces          NetworkInterfacesInDescribeInstances `json:"NetworkInterfaces" xml:"NetworkInterfaces"`

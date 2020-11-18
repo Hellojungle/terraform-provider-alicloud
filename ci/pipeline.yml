@@ -75,8 +75,8 @@ groups:
       - Kms
       # Sls
       - Log
-      # ActionTrail
-      - ActionTrail
+      # Actiontrail
+      - Actiontrail
       # SSL Certificate
       - CasCertificate
       # MongoDB
@@ -104,6 +104,9 @@ groups:
       - Waf
       - Edas
       - ResourceManager
+      - Config
+      - Alidns
+      - NetworkAcl
       - Sweeper-1
       - Sweeper-2
       - Sweeper-3
@@ -202,6 +205,7 @@ groups:
       # Cloud Connect network
       - CloudConnectNetwork
       - Sag
+      - NetworkAcl
       - Sweeper-1
       - Sweeper-2
       - Sweeper-3
@@ -213,6 +217,7 @@ groups:
     jobs:
       # Dns and Pvtz
       - Dns
+      - Alidns
       - Pvtz
       - Sweeper-1
       - Sweeper-2
@@ -239,11 +244,12 @@ groups:
       - Ram
       # Kms
       - Kms
-      # ActionTrail
-      - ActionTrail
+      # Actiontrail
+      - Actiontrail
       # Cms
       - Cms
       - ResourceManager
+      - Config
       - Sweeper-1
       - Sweeper-2
       - Sweeper-3
@@ -967,7 +973,7 @@ jobs:
           <<: *run-params
           TEST_CASE_CODE: "Nas"
 
-  - name: ActionTrail
+  - name: Actiontrail
     plan:
       - <<: *clone-provider
       - get: trigger
@@ -978,7 +984,7 @@ jobs:
       - <<: *run
         params:
           <<: *run-params
-          TEST_CASE_CODE: "ActionTrail"
+          TEST_CASE_CODE: "Actiontrail"
 
   - name: CasCertificate
     plan:
@@ -1342,6 +1348,45 @@ jobs:
         params:
           <<: *run-params
           TEST_CASE_CODE: "Cassandra"
+
+  - name: Config
+    plan:
+      - <<: *clone-provider
+      - get: trigger
+        trigger: true
+        resource: 1030
+      - aggregate:
+          - *get-aliyun-cli
+      - <<: *run
+        params:
+          <<: *run-params
+          TEST_CASE_CODE: "Config"
+
+  - name: Alidns
+    plan:
+      - <<: *clone-provider
+      - get: trigger
+        trigger: true
+        resource: 1130
+      - aggregate:
+          - *get-aliyun-cli
+      - <<: *run
+        params:
+          <<: *run-params
+          TEST_CASE_CODE: "Alidns"
+
+  - name: NetworkAcl
+    plan:
+      - <<: *clone-provider
+      - get: trigger
+        trigger: true
+        resource: 1230
+      - aggregate:
+          - *get-aliyun-cli
+      - <<: *run
+        params:
+          <<: *run-params
+          TEST_CASE_CODE: "NetworkAcl"
 
   - name: SweeperAfter
     plan:

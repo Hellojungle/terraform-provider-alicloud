@@ -21,7 +21,6 @@ import (
 )
 
 // RunInstances invokes the ecs.RunInstances API synchronously
-// api document: https://help.aliyun.com/api/ecs/runinstances.html
 func (client *Client) RunInstances(request *RunInstancesRequest) (response *RunInstancesResponse, err error) {
 	response = CreateRunInstancesResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) RunInstances(request *RunInstancesRequest) (response *RunI
 }
 
 // RunInstancesWithChan invokes the ecs.RunInstances API asynchronously
-// api document: https://help.aliyun.com/api/ecs/runinstances.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) RunInstancesWithChan(request *RunInstancesRequest) (<-chan *RunInstancesResponse, <-chan error) {
 	responseChan := make(chan *RunInstancesResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) RunInstancesWithChan(request *RunInstancesRequest) (<-chan
 }
 
 // RunInstancesWithCallback invokes the ecs.RunInstances API asynchronously
-// api document: https://help.aliyun.com/api/ecs/runinstances.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) RunInstancesWithCallback(request *RunInstancesRequest, callback func(response *RunInstancesResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -99,6 +94,7 @@ type RunInstancesRequest struct {
 	Affinity                       string                          `position:"Query" name:"Affinity"`
 	ImageId                        string                          `position:"Query" name:"ImageId"`
 	SpotInterruptionBehavior       string                          `position:"Query" name:"SpotInterruptionBehavior"`
+	NetworkInterfaceQueueNumber    requests.Integer                `position:"Query" name:"NetworkInterfaceQueueNumber"`
 	IoOptimized                    string                          `position:"Query" name:"IoOptimized"`
 	SecurityGroupId                string                          `position:"Query" name:"SecurityGroupId"`
 	SystemDiskPerformanceLevel     string                          `position:"Query" name:"SystemDisk.PerformanceLevel"`
@@ -106,6 +102,7 @@ type RunInstancesRequest struct {
 	InstanceType                   string                          `position:"Query" name:"InstanceType"`
 	HibernationConfigured          requests.Boolean                `position:"Query" name:"HibernationConfigured"`
 	Arn                            *[]RunInstancesArn              `position:"Query" name:"Arn"  type:"Repeated"`
+	SchedulerOptions               string                          `position:"Query" name:"SchedulerOptions"`
 	ResourceOwnerAccount           string                          `position:"Query" name:"ResourceOwnerAccount"`
 	SystemDiskDiskName             string                          `position:"Query" name:"SystemDisk.DiskName"`
 	DedicatedHostId                string                          `position:"Query" name:"DedicatedHostId"`
@@ -174,6 +171,7 @@ type RunInstancesNetworkInterface struct {
 	SecurityGroupIds     *[]string `name:"SecurityGroupIds" type:"Repeated"`
 	NetworkInterfaceName string    `name:"NetworkInterfaceName"`
 	Description          string    `name:"Description"`
+	QueueNumber          string    `name:"QueueNumber"`
 }
 
 // RunInstancesDataDisk is a repeated param struct in RunInstancesRequest

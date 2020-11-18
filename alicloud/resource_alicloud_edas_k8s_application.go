@@ -104,18 +104,34 @@ func resourceAlicloudEdasK8sApplication() *schema.Resource {
 			"pre_stop": {
 				Type:     schema.TypeString,
 				Optional: true,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					e := EdasService{}
+					return e.PreStopEqual(old, new)
+				},
 			},
 			"post_start": {
 				Type:     schema.TypeString,
 				Optional: true,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					e := EdasService{}
+					return e.PostStartEqual(old, new)
+				},
 			},
 			"liveness": {
 				Type:     schema.TypeString,
 				Optional: true,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					e := EdasService{}
+					return e.LivenessEqual(old, new)
+				},
 			},
 			"readiness": {
 				Type:     schema.TypeString,
 				Optional: true,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					e := EdasService{}
+					return e.ReadinessEqual(old, new)
+				},
 			},
 			"nas_id": {
 				Type:     schema.TypeString,
@@ -364,7 +380,7 @@ func resourceAlicloudEdasK8sApplicationRead(d *schema.ResourceData, meta interfa
 	d.Set("replicas", response.App.Instances)
 	d.Set("package_type", response.App.ApplicationType)
 	d.Set("image_url", response.ImageInfo.ImageUrl)
-	var envs map[string]string
+	envs := make(map[string]string)
 	for _, e := range response.App.EnvList.Env {
 		envs[e.Name] = e.Value
 	}
@@ -402,17 +418,27 @@ func resourceAlicloudEdasK8sApplicationRead(d *schema.ResourceData, meta interfa
 		}
 
 		for _, c := range v.Components.ComponentsItem {
-			if strings.Contains(c.ComponentKey, "Open JDK") {
+			if strings.Contains(c.ComponentKey, "JDK") {
 				d.Set("jdk", c.ComponentKey)
 			}
 		}
 	}
 
-	d.Set("edas_container_version", response.App.EdasContainerVersion)
-	d.Set("pre_stop", response.Conf.PreStop)
-	d.Set("post_start", response.Conf.PostStart)
-	d.Set("liveness", response.Conf.Liveness)
-	d.Set("readiness", response.Conf.Readiness)
+	if len(response.App.EdasContainerVersion) > 0 {
+		d.Set("edas_container_version", response.App.EdasContainerVersion)
+	}
+	if len(response.Conf.PreStop) > 0 {
+		d.Set("pre_stop", response.Conf.PreStop)
+	}
+	if len(response.Conf.PostStart) > 0 {
+		d.Set("post_start", response.Conf.PostStart)
+	}
+	if len(response.Conf.Liveness) > 0 {
+		d.Set("liveness", response.Conf.Liveness)
+	}
+	if len(response.Conf.Readiness) > 0 {
+		d.Set("readiness", response.Conf.Readiness)
+	}
 	d.Set("namespace", response.NameSpace)
 	return nil
 }
@@ -518,7 +544,7 @@ func resourceAlicloudEdasK8sApplicationUpdate(d *schema.ResourceData, meta inter
 	if d.HasChange("command_args") {
 		update = true
 		d.SetPartial("command_args")
-		commands, err := edasService.GetK8sCommandArgs(d.Get("command_args").([]interface{}))
+		commands, err := edasService.GetK8sCommandArgsForDeploy(d.Get("command_args").([]interface{}))
 		if err != nil {
 			return WrapError(err)
 		}
@@ -536,27 +562,35 @@ func resourceAlicloudEdasK8sApplicationUpdate(d *schema.ResourceData, meta inter
 	}
 
 	if d.HasChange("pre_stop") {
-		update = true
-		request.PreStop = d.Get("pre_stop").(string)
-		d.SetPartial("pre_stop")
+		if !edasService.PreStopEqual(d.GetChange("pre_stop")) {
+			update = true
+			request.PreStop = d.Get("pre_stop").(string)
+			d.SetPartial("pre_stop")
+		}
 	}
 
 	if d.HasChange("post_start") {
-		update = true
-		request.PostStart = d.Get("post_start").(string)
-		d.SetPartial("post_start")
+		if !edasService.PostStartEqual(d.GetChange("post_start")) {
+			update = true
+			request.PostStart = d.Get("post_start").(string)
+			d.SetPartial("post_start")
+		}
 	}
 
 	if d.HasChange("liveness") {
-		update = true
-		request.Liveness = d.Get("liveness").(string)
-		d.SetPartial("liveness")
+		if !edasService.LivenessEqual(d.GetChange("liveness")) {
+			update = true
+			request.Liveness = d.Get("liveness").(string)
+			d.SetPartial("liveness")
+		}
 	}
 
 	if d.HasChange("readiness") {
-		update = true
-		request.Readiness = d.Get("readiness").(string)
-		d.SetPartial("readiness")
+		if !edasService.ReadinessEqual(d.GetChange("readiness")) {
+			update = true
+			request.Readiness = d.Get("readiness").(string)
+			d.SetPartial("readiness")
+		}
 	}
 
 	if d.HasChange("nas_id") {
