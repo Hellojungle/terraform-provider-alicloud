@@ -161,7 +161,6 @@ func resourceAlicloudEdasK8sApplication() *schema.Resource {
 			"package_version": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  strconv.FormatInt(time.Now().Unix(), 10),
 			},
 			"jdk": {
 				Type:     schema.TypeString,
@@ -181,6 +180,10 @@ func resourceAlicloudEdasK8sApplication() *schema.Resource {
 			},
 			"limit_m_cpu": {
 				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"java_start_up_config": {
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 		},
@@ -213,6 +216,8 @@ func resourceAlicloudEdasK8sApplicationCreate(d *schema.ResourceData, meta inter
 		}
 		if v, ok := d.GetOk("package_version"); ok {
 			request.PackageVersion = v.(string)
+		} else {
+			request.PackageVersion = strconv.FormatInt(time.Now().Unix(), 10)
 		}
 		if v, ok := d.GetOk("jdk"); !ok {
 			return WrapError(Error("jdk is needed for creating non-image k8s application"))
@@ -328,6 +333,10 @@ func resourceAlicloudEdasK8sApplicationCreate(d *schema.ResourceData, meta inter
 
 	if v, ok := d.GetOk("limit_m_cpu"); ok {
 		request.LimitmCpu = requests.NewInteger(v.(int))
+	}
+
+	if v, ok := d.GetOk("java_start_up_config"); ok {
+		request.JavaStartUpConfig = v.(string)
 	}
 
 	var appId string
@@ -466,6 +475,14 @@ func resourceAlicloudEdasK8sApplicationUpdate(d *schema.ResourceData, meta inter
 		if len(request.PackageUrl) == 0 {
 			return WrapError(Error("package_url is needed for creating fatjar k8s application"))
 		}
+
+		if d.HasChange("package_version") {
+			partialKeys = append(partialKeys, "package_version")
+		}
+		request.PackageVersion = d.Get("package_version").(string)
+		if len(request.PackageVersion) == 0 {
+			request.PackageVersion = strconv.FormatInt(time.Now().Unix(), 10)
+		}
 		request.PackageVersion = d.Get("package_version").(string)
 
 		if d.HasChange("jdk") {
@@ -584,6 +601,11 @@ func resourceAlicloudEdasK8sApplicationUpdate(d *schema.ResourceData, meta inter
 	if d.HasChange("limit_m_cpu") {
 		partialKeys = append(partialKeys, "limit_m_cpu")
 		request.McpuLimit = requests.NewInteger(d.Get("limit_m_cpu").(int))
+	}
+
+	if d.HasChange("java_start_up_config") {
+		partialKeys = append(partialKeys, "java_start_up_config")
+		request.JavaStartUpConfig = d.Get("java_start_up_config").(string)
 	}
 
 	if len(partialKeys) > 0 {
