@@ -77,7 +77,7 @@ clean:
 mac:
 	GOOS=darwin GOARCH=amd64 go build -o bin/terraform-provider-alicloud
 	tar czvf bin/terraform-provider-alicloud_darwin-amd64.tgz bin/terraform-provider-alicloud
-	rm -rf bin/terraform-provider-alicloud
+#	rm -rf bin/terraform-provider-alicloud
 
 windowscopy:
 	tar -xvf bin/terraform-provider-alicloud_windows-amd64.tgz && mv bin/terraform-provider-alicloud $(shell dirname `which terraform`)
